@@ -1,24 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ChevronRight, ChevronLeft, GraduationCap } from 'lucide-react';
-
-interface Exam {
-  year: string;
-  subject: string;
-  questions: { filename: string; content: string } | null;
-  answers: { filename: string; content: string }[];
-}
-
-interface SubjectData {
-  subject: string;
-  exams: Exam[];
-}
-
-interface ExamViewerProps {
-  data: SubjectData[];
-}
-
 import { ChevronRight, ChevronLeft, GraduationCap, Menu, X } from 'lucide-react';
 
 interface Exam {
@@ -43,6 +25,21 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
   const [viewMode, setViewMode] = useState<'question' | 'answer'>('question');
   const [selectedAnswerIdx, setSelectedAnswerIdx] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [fontFamily, setFontFamily] = useState<'sans' | 'serif' | 'kaiti'>('sans');
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('lg');
+
+  const fontStyles = {
+    sans: 'font-sans',
+    serif: 'font-serif',
+    kaiti: 'font-kaiti'
+  };
+
+  const fontSizeStyles = {
+    sm: 'text-sm',
+    base: 'text-base',
+    lg: 'text-lg',
+    xl: 'text-xl'
+  };
 
   const currentSubject = data[selectedSubjectIdx];
   const currentExam = currentSubject.exams[selectedExamIdx];
@@ -74,8 +71,8 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-50 transition-transform duration-300 transform
-        md:relative md:translate-x-0 md:w-64
+        fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-50 transition-transform duration-300 transform
+        md:relative md:translate-x-0
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
@@ -91,7 +88,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
           </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-3 space-y-6">
+        <div className="flex-1 overflow-y-auto p-3 space-y-6 no-scrollbar">
           <div>
             <p className="px-2 mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">考科</p>
             <div className="space-y-1">
@@ -149,31 +146,56 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
             </div>
           </div>
 
-          <div className="flex bg-slate-800 p-1 rounded-xl">
-            <button
-              onClick={() => setViewMode('question')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                viewMode === 'question' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
-              }`}
+          <div className="flex items-center gap-2">
+            {/* Font Family Selector */}
+            <select
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value as any)}
+              className="bg-slate-800 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer transition-colors"
             >
-              題目
-            </button>
-            <button
-              onClick={() => setViewMode('answer')}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                viewMode === 'answer' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
-              }`}
+              <option value="sans">黑體</option>
+              <option value="serif">明體</option>
+              <option value="kaiti">楷體</option>
+            </select>
+
+            {/* Font Size Selector */}
+            <select
+              value={fontSize}
+              onChange={(e) => setFontSize(e.target.value as any)}
+              className="bg-slate-800 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer transition-colors"
             >
-              解答
-            </button>
+              <option value="sm">小</option>
+              <option value="base">中</option>
+              <option value="lg">大</option>
+              <option value="xl">特大</option>
+            </select>
+
+            <div className="flex bg-slate-800 p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode('question')}
+                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                  viewMode === 'question' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
+                }`}
+              >
+                題目
+              </button>
+              <button
+                onClick={() => setViewMode('answer')}
+                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                  viewMode === 'answer' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
+                }`}
+              >
+                解答
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-4xl mx-auto bg-slate-900 shadow-2xl rounded-2xl border border-slate-800 p-5 md:p-10 min-h-full">
+        <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-8">
+          <div className="max-w-4xl mx-auto bg-slate-900 shadow-2xl rounded-xl sm:rounded-2xl border border-slate-800 p-4 sm:p-6 md:p-10 min-h-full">
             {viewMode === 'question' ? (
-              <div className="markdown-body text-base md:text-lg">
+              <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
                 {currentExam.questions ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {currentExam.questions.content}
@@ -201,7 +223,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                     ))}
                   </div>
                 )}
-                <div className="markdown-body text-base md:text-lg">
+                <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
                   {currentExam.answers.length > 0 ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {currentExam.answers[selectedAnswerIdx].content}
