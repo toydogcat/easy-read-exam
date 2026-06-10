@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# tmp files
+TMP/*
+dist/
+# src/data/exams.json <- Removed from ignore to track it
+
