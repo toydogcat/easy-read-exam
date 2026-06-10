@@ -42,12 +42,12 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-4 border-b border-slate-200">
+      <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
+        <div className="p-4 border-b border-slate-800">
           <h1 className="text-xl font-bold flex items-center gap-2">
-            <GraduationCap className="text-blue-600" />
+            <GraduationCap className="text-blue-400" />
             考古題閱覽
           </h1>
         </div>
@@ -62,8 +62,8 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                   onClick={() => handleSubjectChange(idx)}
                   className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                     selectedSubjectIdx === idx 
-                      ? 'bg-blue-50 text-blue-700 font-medium' 
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-blue-900/30 text-blue-400 font-medium' 
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                   }`}
                 >
                   {item.subject}
@@ -81,8 +81,8 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                   onClick={() => handleExamChange(idx)}
                   className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                     selectedExamIdx === idx 
-                      ? 'bg-slate-200 text-slate-900 font-medium' 
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-slate-800 text-slate-100 font-medium' 
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                   }`}
                 >
                   {exam.year} 年
@@ -94,19 +94,19 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-950">
+        <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 shrink-0">
+          <div className="flex items-center gap-2 text-sm text-slate-400">
             <span>{currentSubject.subject}</span>
             <ChevronRight size={16} />
-            <span className="font-medium text-slate-900">{currentExam.year} 年</span>
+            <span className="font-medium text-slate-200">{currentExam.year} 年</span>
           </div>
 
-          <div className="flex bg-slate-100 p-1 rounded-lg">
+          <div className="flex bg-slate-800 p-1 rounded-lg">
             <button
               onClick={() => setViewMode('question')}
               className={`px-4 py-1 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'question' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'question' ? 'bg-slate-700 shadow-sm text-blue-400' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               題目
@@ -114,7 +114,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
             <button
               onClick={() => setViewMode('answer')}
               className={`px-4 py-1 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'answer' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'answer' ? 'bg-slate-700 shadow-sm text-blue-400' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               解答
@@ -123,8 +123,8 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-4xl mx-auto bg-white shadow-sm rounded-xl border border-slate-200 p-8 min-h-full">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="max-w-4xl mx-auto bg-slate-900 shadow-xl rounded-xl border border-slate-800 p-6 md:p-10 min-h-full">
             {viewMode === 'question' ? (
               <div className="markdown-body">
                 {currentExam.questions ? (
@@ -132,21 +132,21 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                     {currentExam.questions.content}
                   </ReactMarkdown>
                 ) : (
-                  <p className="text-slate-500 italic">暫無題目內容</p>
+                  <p className="text-slate-500 italic text-center py-20">暫無題目內容</p>
                 )}
               </div>
             ) : (
               <div className="space-y-8">
                 {currentExam.answers.length > 1 && (
-                  <div className="flex gap-2 border-b border-slate-100 pb-4 overflow-x-auto">
+                  <div className="flex gap-2 border-b border-slate-800 pb-4 overflow-x-auto">
                     {currentExam.answers.map((ans, idx) => (
                       <button
                         key={idx}
                         onClick={() => setSelectedAnswerIdx(idx)}
-                        className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${
+                        className={`px-3 py-1 text-xs rounded-full whitespace-nowrap transition-colors ${
                           selectedAnswerIdx === idx 
                             ? 'bg-blue-600 text-white' 
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'
                         }`}
                       >
                         {ans.filename.replace('.md', '')}
@@ -160,7 +160,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                       {currentExam.answers[selectedAnswerIdx].content}
                     </ReactMarkdown>
                   ) : (
-                    <p className="text-slate-500 italic">暫無解答內容</p>
+                    <p className="text-slate-500 italic text-center py-20">暫無解答內容</p>
                   )}
                 </div>
               </div>
@@ -169,21 +169,21 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
         </div>
 
         {/* Footer Navigation */}
-        <footer className="h-12 bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 text-sm">
+        <footer className="h-12 bg-slate-900 border-t border-slate-800 flex items-center justify-between px-6 shrink-0 text-sm">
           <button
             disabled={selectedExamIdx === currentSubject.exams.length - 1}
             onClick={() => handleExamChange(selectedExamIdx + 1)}
-            className="flex items-center gap-1 text-slate-600 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-600"
+            className="flex items-center gap-1 text-slate-400 hover:text-blue-400 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft size={16} /> 下一年份
           </button>
-          <div className="text-slate-400">
+          <div className="text-slate-600 font-mono">
             {selectedExamIdx + 1} / {currentSubject.exams.length}
           </div>
           <button
             disabled={selectedExamIdx === 0}
             onClick={() => handleExamChange(selectedExamIdx - 1)}
-            className="flex items-center gap-1 text-slate-600 hover:text-blue-600 disabled:opacity-30 disabled:hover:text-slate-600"
+            className="flex items-center gap-1 text-slate-400 hover:text-blue-400 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
           >
             前一年份 <ChevronRight size={16} />
           </button>

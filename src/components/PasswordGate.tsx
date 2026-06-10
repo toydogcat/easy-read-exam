@@ -32,9 +32,9 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">請輸入密碼以繼續</h1>
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
+      <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-8">
+        <h1 className="text-2xl font-bold text-center mb-6 text-slate-100">請輸入密碼以繼續</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
@@ -45,16 +45,16 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onSuccess }) => {
                 setError(false);
               }}
               placeholder="密碼"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                error ? 'border-red-500 focus:ring-red-200' : 'border-slate-300 focus:ring-blue-200'
+              className={`w-full px-4 py-2 bg-slate-800 border rounded-lg text-slate-100 focus:outline-none focus:ring-2 ${
+                error ? 'border-red-500 focus:ring-red-900/50' : 'border-slate-700 focus:ring-blue-500/50'
               }`}
               autoFocus
             />
-            {error && <p className="text-red-500 text-sm mt-1">密碼錯誤，請再試一次。</p>}
+            {error && <p className="text-red-400 text-sm mt-1">密碼錯誤，請再試一次。</p>}
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-lg transition-colors shadow-lg shadow-blue-900/20"
           >
             進入閱覽
           </button>
