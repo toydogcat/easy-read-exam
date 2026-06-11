@@ -1,3 +1,4 @@
+@import "katex/dist/katex.min.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -80,3 +81,12 @@
 .markdown-body code {
   @apply bg-slate-800 px-1 rounded text-blue-300;
 }
+
+.markdown-body strong {
+  @apply text-blue-400 font-semibold;
+}
+
+.markdown-body em {
+  @apply text-teal-400 not-italic font-medium border-b border-teal-500/30 pb-0.5;
+}
+

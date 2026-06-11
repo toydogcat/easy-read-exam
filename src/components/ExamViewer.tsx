@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import { ChevronRight, ChevronLeft, GraduationCap, Menu, X } from 'lucide-react';
 
 interface Exam {
@@ -197,7 +199,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
             {viewMode === 'question' ? (
               <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
                 {currentExam.questions ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {currentExam.questions.content}
                   </ReactMarkdown>
                 ) : (
@@ -225,7 +227,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                 )}
                 <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
                   {currentExam.answers.length > 0 ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                       {currentExam.answers[selectedAnswerIdx].content}
                     </ReactMarkdown>
                   ) : (
