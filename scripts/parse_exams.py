@@ -51,11 +51,23 @@ def parse_exams(base_dir):
                     "content": content
                 }
         
+        # Check for summary file
+        summary_data = None
+        summary_path = os.path.join(subject_path, "重點整理.md")
+        if os.path.exists(summary_path):
+            with open(summary_path, 'r', encoding='utf-8') as f:
+                summary_content = f.read()
+            summary_data = {
+                "filename": "重點整理.md",
+                "content": summary_content
+            }
+
         # Sort exams by year
         sorted_exams = sorted(exams_by_year.values(), key=lambda x: int(x["year"]), reverse=True)
         
         data.append({
             "subject": subject_name,
+            "summary": summary_data,
             "exams": sorted_exams
         })
         

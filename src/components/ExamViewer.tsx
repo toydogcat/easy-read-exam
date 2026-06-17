@@ -14,6 +14,7 @@ interface Exam {
 
 interface SubjectData {
   subject: string;
+  summary?: { filename: string; content: string } | null;
   exams: Exam[];
 }
 
@@ -24,7 +25,9 @@ interface ExamViewerProps {
 const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
   const [selectedSubjectIdx, setSelectedSubjectIdx] = useState(0);
   const [selectedExamIdx, setSelectedExamIdx] = useState(0);
-  const [viewMode, setViewMode] = useState<'question' | 'answer'>('question');
+  const [viewMode, setViewMode] = useState<'summary' | 'question' | 'answer'>(
+    data[0]?.summary ? 'summary' : 'question'
+  );
   const [selectedAnswerIdx, setSelectedAnswerIdx] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [fontFamily, setFontFamily] = useState<'sans' | 'serif' | 'kaiti'>('sans');
@@ -49,7 +52,12 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
   const handleSubjectChange = (idx: number) => {
     setSelectedSubjectIdx(idx);
     setSelectedExamIdx(0);
-    setViewMode('question');
+    const subject = data[idx];
+    if (subject.summary) {
+      setViewMode('summary');
+    } else {
+      setViewMode('question');
+    }
     setSelectedAnswerIdx(0);
     setIsSidebarOpen(false); // Close sidebar on mobile
   };
@@ -111,19 +119,35 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
           </div>
 
           <div>
-            <p className="px-2 mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">年份</p>
+            <p className="px-2 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">學習資源</p>
+            {currentSubject.summary && (
+              <button
+                onClick={() => {
+                  setViewMode('summary');
+                  setIsSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  viewMode === 'summary'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-indigo-950/50'
+                    : 'text-slate-300 bg-slate-800/60 hover:bg-slate-800 hover:text-slate-100 border border-slate-700/30'
+                }`}
+              >
+                💡 重點整理
+              </button>
+            )}
+            <p className="px-2 mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">歷屆考題</p>
             <div className="grid grid-cols-2 gap-1 px-1">
               {currentSubject.exams.map((exam, idx) => (
                 <button
                   key={exam.year}
                   onClick={() => handleExamChange(idx)}
                   className={`text-center px-2 py-2.5 rounded-lg text-sm transition-colors ${
-                    selectedExamIdx === idx 
-                      ? 'bg-slate-800 text-slate-100 font-medium' 
+                    viewMode !== 'summary' && selectedExamIdx === idx 
+                      ? 'bg-slate-800 text-blue-400 font-semibold border border-slate-700' 
                       : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent'
                   }`}
                 >
-                  {exam.year}
+                  {exam.year} 年
                 </button>
               ))}
             </div>
@@ -144,7 +168,9 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
             <div className="flex items-center gap-1 text-sm text-slate-400 truncate">
               <span className="hidden sm:inline">{currentSubject.subject}</span>
               <ChevronRight size={14} className="hidden sm:inline shrink-0" />
-              <span className="font-medium text-slate-200 truncate">{currentExam.year} 年</span>
+              <span className="font-medium text-slate-200 truncate">
+                {viewMode === 'summary' ? '重點整理' : `${currentExam.year} 年`}
+              </span>
             </div>
           </div>
 
@@ -172,31 +198,47 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
               <option value="xl">特大</option>
             </select>
 
-            <div className="flex bg-slate-800 p-1 rounded-xl">
-              <button
-                onClick={() => setViewMode('question')}
-                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                  viewMode === 'question' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
-                }`}
-              >
-                題目
-              </button>
-              <button
-                onClick={() => setViewMode('answer')}
-                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                  viewMode === 'answer' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
-                }`}
-              >
-                解答
-              </button>
-            </div>
+            {viewMode === 'summary' ? (
+              <div className="flex items-center gap-1.5 bg-blue-950/80 border border-blue-800/40 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-400">
+                <span>💡 重點整理</span>
+              </div>
+            ) : (
+              <div className="flex bg-slate-800 p-1 rounded-xl">
+                <button
+                  onClick={() => setViewMode('question')}
+                  className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                    viewMode === 'question' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
+                  }`}
+                >
+                  題目
+                </button>
+                <button
+                  onClick={() => setViewMode('answer')}
+                  className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                    viewMode === 'answer' ? 'bg-slate-700 shadow-lg text-blue-400' : 'text-slate-400'
+                  }`}
+                >
+                  解答
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-8">
           <div className="max-w-4xl mx-auto bg-slate-900 shadow-2xl rounded-xl sm:rounded-2xl border border-slate-800 p-4 sm:p-6 md:p-10 min-h-full">
-            {viewMode === 'question' ? (
+            {viewMode === 'summary' ? (
+              <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
+                {currentSubject.summary ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {currentSubject.summary.content}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-slate-500 italic text-center py-20">暫無重點整理內容</p>
+                )}
+              </div>
+            ) : viewMode === 'question' ? (
               <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
                 {currentExam.questions ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
@@ -241,23 +283,40 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
 
         {/* Footer Navigation */}
         <footer className="h-16 bg-slate-900 border-t border-slate-800 flex items-center justify-between px-6 shrink-0 text-sm z-30">
-          <button
-            disabled={selectedExamIdx === currentSubject.exams.length - 1}
-            onClick={() => handleExamChange(selectedExamIdx + 1)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800 active:bg-slate-700 disabled:opacity-10 disabled:cursor-not-allowed transition-all"
-          >
-            <ChevronLeft size={20} /> <span className="hidden sm:inline">下一年份</span>
-          </button>
-          <div className="text-slate-600 font-mono font-medium tracking-tighter">
-            {selectedExamIdx + 1} / {currentSubject.exams.length}
-          </div>
-          <button
-            disabled={selectedExamIdx === 0}
-            onClick={() => handleExamChange(selectedExamIdx - 1)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800 active:bg-slate-700 disabled:opacity-10 disabled:cursor-not-allowed transition-all"
-          >
-            <span className="hidden sm:inline">前一年份</span> <ChevronRight size={20} />
-          </button>
+          {viewMode === 'summary' ? (
+            <div className="w-full flex justify-center">
+              <button
+                onClick={() => {
+                  setSelectedExamIdx(0);
+                  setViewMode('question');
+                }}
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white font-semibold rounded-lg shadow-lg shadow-indigo-950/40 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <span>開始練習考古題 ({currentSubject.exams[0]?.year}年)</span>
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                disabled={selectedExamIdx === currentSubject.exams.length - 1}
+                onClick={() => handleExamChange(selectedExamIdx + 1)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800 active:bg-slate-700 disabled:opacity-10 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft size={20} /> <span className="hidden sm:inline">下一年份</span>
+              </button>
+              <div className="text-slate-600 font-mono font-medium tracking-tighter">
+                {selectedExamIdx + 1} / {currentSubject.exams.length}
+              </div>
+              <button
+                disabled={selectedExamIdx === 0}
+                onClick={() => handleExamChange(selectedExamIdx - 1)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800 active:bg-slate-700 disabled:opacity-10 disabled:cursor-not-allowed transition-all"
+              >
+                <span className="hidden sm:inline">前一年份</span> <ChevronRight size={20} />
+              </button>
+            </>
+          )}
         </footer>
       </div>
     </div>
