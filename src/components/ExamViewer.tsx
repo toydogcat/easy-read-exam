@@ -1,33 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import { ChevronRight, ChevronLeft, GraduationCap, Menu, X } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, Menu, X, BookOpen } from 'lucide-react';
 
-interface Exam {
+export interface Exam {
   year: string;
   subject: string;
   questions: { filename: string; content: string } | null;
   answers: { filename: string; content: string }[];
 }
 
-interface SubjectData {
+export interface SubjectData {
   subject: string;
   summary?: { filename: string; content: string } | null;
   exams: Exam[];
 }
 
-interface ExamViewerProps {
-  data: SubjectData[];
+export interface ExamTrack {
+  id: string;
+  name: string;
+  subjects: SubjectData[];
+}
+
+export interface ExamViewerProps {
+  data: ExamTrack[] | SubjectData[];
 }
 
 const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
+  // Normalize data into ExamTrack[]
+  const tracks: ExamTrack[] = useMemo(() => {
+    if (Array.isArray(data) && data.length > 0 && 'subjects' in data[0]) {
+      return data as ExamTrack[];
+    }
+    return [
+      {
+        id: 'default',
+        name: '高考二級',
+        subjects: data as SubjectData[]
+      }
+    ];
+  }, [data]);
+
+  const [selectedTrackIdx, setSelectedTrackIdx] = useState(0);
   const [selectedSubjectIdx, setSelectedSubjectIdx] = useState(0);
   const [selectedExamIdx, setSelectedExamIdx] = useState(0);
-  const [viewMode, setViewMode] = useState<'summary' | 'question' | 'answer'>(
-    data[0]?.summary ? 'summary' : 'question'
-  );
+
+  const currentTrack = tracks[selectedTrackIdx] || tracks[0];
+  const currentSubject = currentTrack?.subjects[selectedSubjectIdx] || currentTrack?.subjects[0];
+  const currentExam = currentSubject?.exams[selectedExamIdx] || currentSubject?.exams[0];
+
+  const [viewMode, setViewMode] = useState<'summary' | 'question' | 'answer'>(() => {
+    return tracks[0]?.subjects[0]?.summary ? 'summary' : 'question';
+  });
+
   const [selectedAnswerIdx, setSelectedAnswerIdx] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [fontFamily, setFontFamily] = useState<'sans' | 'serif' | 'kaiti'>('sans');
@@ -46,13 +73,24 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
     xl: 'text-xl'
   };
 
-  const currentSubject = data[selectedSubjectIdx];
-  const currentExam = currentSubject.exams[selectedExamIdx];
+  const handleTrackChange = (idx: number) => {
+    setSelectedTrackIdx(idx);
+    setSelectedSubjectIdx(0);
+    setSelectedExamIdx(0);
+    const targetTrack = tracks[idx];
+    const firstSubject = targetTrack?.subjects[0];
+    if (firstSubject?.summary) {
+      setViewMode('summary');
+    } else {
+      setViewMode('question');
+    }
+    setSelectedAnswerIdx(0);
+  };
 
   const handleSubjectChange = (idx: number) => {
     setSelectedSubjectIdx(idx);
     setSelectedExamIdx(0);
-    const subject = data[idx];
+    const subject = currentTrack.subjects[idx];
     if (subject.summary) {
       setViewMode('summary');
     } else {
@@ -81,46 +119,79 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-50 transition-transform duration-300 transform
+        fixed inset-y-0 left-0 w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-50 transition-transform duration-300 transform
         md:relative md:translate-x-0
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
+        {/* Header Title */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-2">
             <GraduationCap className="text-blue-400" />
             考古題閱覽
           </h1>
           <button 
-            className="md:hidden p-2 text-slate-400"
+            className="md:hidden p-2 text-slate-400 hover:text-slate-200"
             onClick={() => setIsSidebarOpen(false)}
           >
             <X size={24} />
           </button>
         </div>
+
+        {/* Track / Category Switcher */}
+        {tracks.length > 1 && (
+          <div className="p-3 border-b border-slate-800/80 bg-slate-950/40">
+            <p className="px-1 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <BookOpen size={13} className="text-blue-400" />
+              考試類別
+            </p>
+            <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              {tracks.map((t, idx) => (
+                <button
+                  key={t.id}
+                  onClick={() => handleTrackChange(idx)}
+                  className={`px-1.5 py-2 rounded-lg text-xs font-semibold transition-all text-center truncate ${
+                    selectedTrackIdx === idx
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-900/40'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/70'
+                  }`}
+                  title={t.name}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         
+        {/* Subjects & Exams List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-6 no-scrollbar">
           <div>
-            <p className="px-2 mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">考科</p>
+            <p className="px-2 mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              {currentTrack?.name} 考科
+            </p>
             <div className="space-y-1">
-              {data.map((item, idx) => (
+              {currentTrack?.subjects.map((item, idx) => (
                 <button
                   key={item.subject}
                   onClick={() => handleSubjectChange(idx)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
                     selectedSubjectIdx === idx 
                       ? 'bg-blue-900/40 text-blue-400 font-medium' 
                       : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                   }`}
                 >
-                  {item.subject}
+                  <span className="truncate">{item.subject}</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 ml-2 shrink-0">
+                    {item.exams.length}年
+                  </span>
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <p className="px-2 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">學習資源</p>
-            {currentSubject.summary && (
+            <p className="px-2 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">學習資源</p>
+            {currentSubject?.summary && (
               <button
                 onClick={() => {
                   setViewMode('summary');
@@ -135,9 +206,9 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                 💡 重點整理
               </button>
             )}
-            <p className="px-2 mb-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">歷屆考題</p>
+            <p className="px-2 mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">歷屆考題</p>
             <div className="grid grid-cols-2 gap-1 px-1">
-              {currentSubject.exams.map((exam, idx) => (
+              {currentSubject?.exams.map((exam, idx) => (
                 <button
                   key={exam.year}
                   onClick={() => handleExamChange(idx)}
@@ -165,11 +236,15 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
             >
               <Menu size={24} />
             </button>
-            <div className="flex items-center gap-1 text-sm text-slate-400 truncate">
-              <span className="hidden sm:inline">{currentSubject.subject}</span>
-              <ChevronRight size={14} className="hidden sm:inline shrink-0" />
+            <div className="flex items-center gap-1.5 text-sm text-slate-400 truncate">
+              <span className="font-semibold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800/40 text-xs shrink-0">
+                {currentTrack?.name}
+              </span>
+              <ChevronRight size={14} className="hidden sm:inline shrink-0 text-slate-600" />
+              <span className="hidden sm:inline truncate">{currentSubject?.subject}</span>
+              <ChevronRight size={14} className="hidden sm:inline shrink-0 text-slate-600" />
               <span className="font-medium text-slate-200 truncate">
-                {viewMode === 'summary' ? '重點整理' : `${currentExam.year} 年`}
+                {viewMode === 'summary' ? '重點整理' : `${currentExam?.year} 年`}
               </span>
             </div>
           </div>
@@ -230,7 +305,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
           <div className="max-w-4xl mx-auto bg-slate-900 shadow-2xl rounded-xl sm:rounded-2xl border border-slate-800 p-4 sm:p-6 md:p-10 min-h-full">
             {viewMode === 'summary' ? (
               <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
-                {currentSubject.summary ? (
+                {currentSubject?.summary ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {currentSubject.summary.content}
                   </ReactMarkdown>
@@ -240,7 +315,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
               </div>
             ) : viewMode === 'question' ? (
               <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
-                {currentExam.questions ? (
+                {currentExam?.questions ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {currentExam.questions.content}
                   </ReactMarkdown>
@@ -250,7 +325,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
               </div>
             ) : (
               <div className="space-y-6">
-                {currentExam.answers.length > 1 && (
+                {currentExam && currentExam.answers.length > 1 && (
                   <div className="flex gap-2 border-b border-slate-800 pb-4 overflow-x-auto no-scrollbar">
                     {currentExam.answers.map((ans, idx) => (
                       <button
@@ -268,12 +343,15 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                   </div>
                 )}
                 <div className={`markdown-body ${fontSizeStyles[fontSize]} ${fontStyles[fontFamily]}`}>
-                  {currentExam.answers.length > 0 ? (
+                  {currentExam && currentExam.answers.length > 0 ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
-                      {currentExam.answers[selectedAnswerIdx].content}
+                      {currentExam.answers[selectedAnswerIdx]?.content || ''}
                     </ReactMarkdown>
                   ) : (
-                    <p className="text-slate-500 italic text-center py-20">暫無解答內容</p>
+                    <div className="text-center py-20 space-y-3">
+                      <p className="text-slate-400 text-base font-medium">此年度暫無參考解答</p>
+                      <p className="text-slate-500 text-xs">可參考題目內容進行演練，或參閱其他年度已提供之完整解析。</p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -292,21 +370,21 @@ const ExamViewer: React.FC<ExamViewerProps> = ({ data }) => {
                 }}
                 className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white font-semibold rounded-lg shadow-lg shadow-indigo-950/40 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
-                <span>開始練習考古題 ({currentSubject.exams[0]?.year}年)</span>
+                <span>開始練習考古題 ({currentSubject?.exams[0]?.year}年)</span>
                 <ChevronRight size={18} />
               </button>
             </div>
           ) : (
             <>
               <button
-                disabled={selectedExamIdx === currentSubject.exams.length - 1}
+                disabled={!currentSubject || selectedExamIdx === currentSubject.exams.length - 1}
                 onClick={() => handleExamChange(selectedExamIdx + 1)}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-blue-400 hover:bg-slate-800 active:bg-slate-700 disabled:opacity-10 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronLeft size={20} /> <span className="hidden sm:inline">下一年份</span>
               </button>
               <div className="text-slate-600 font-mono font-medium tracking-tighter">
-                {selectedExamIdx + 1} / {currentSubject.exams.length}
+                {currentSubject?.exams.length ? `${selectedExamIdx + 1} / ${currentSubject.exams.length}` : '0 / 0'}
               </div>
               <button
                 disabled={selectedExamIdx === 0}
