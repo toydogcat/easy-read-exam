@@ -3,11 +3,12 @@ import re
 import glob
 
 def enhance_content(content):
-    # 1. Heading emojis (## 第一題 -> ## 📝 第一題)
-    content = re.sub(r'^(##\s+)(?![📝⚙️🔍🛡️🔑🔹])(第[一二三四五六七八九十]+題：)', r'\1📝 \2', content, flags=re.MULTILINE)
+    # 1. Heading emojis (## 第一題 -> ## 📝 第一題, ## 一、 -> ## 📝 一、)
+    content = re.sub(r'^(##\s+)(?![📝⚙️🔍🛡️🔑🔹📖📋])(第[一二三四五六七八九十]+題：)', r'\1📝 \2', content, flags=re.MULTILINE)
+    content = re.sub(r'^(##\s+)(?![📝⚙️🔍🛡️🔑🔹📖📋])([一二三四五六七八九十]、)', r'\1📝 \2', content, flags=re.MULTILINE)
     
     # 2. Subheading emojis (### (一) -> ### 🔹 (一))
-    content = re.sub(r'^(###\s+)(?![📝⚙️🔍🛡️🔑🔹])(\([一二三四五六七八九十]+\))', r'\1🔹 \2', content, flags=re.MULTILINE)
+    content = re.sub(r'^(###\s+)(?![📝⚙️🔍🛡️🔑🔹📖📋])(\([一二三四五六七八九十]+\))', r'\1🔹 \2', content, flags=re.MULTILINE)
     
     # 3. List item bold term enhancements with emojis
     replacements = {
@@ -37,21 +38,21 @@ def enhance_content(content):
     }
     
     for pattern, repl in replacements.items():
-        # Only replace if not already prefixed by emoji
-        # We search for the exact pattern and replace it
-        content = re.sub(r'(?<![🟢🔴🎯🛡️📖🔑✅🧮⚠️ℹ️🐾📊🏁⚙️⚡📈💥💡📜🧠]\s)' + pattern, repl, content)
+        content = re.sub(r'(?<![🟢🔴🎯🛡️📖🔑✅🧮⚠️ℹ️🐾📊🏁⚙️⚡📈💥💡📜🧠📋]\s)' + pattern, repl, content)
         
     return content
 
 def main():
-    base_dir = 'TMP/資訊處理考古題'
-    pattern = os.path.join(base_dir, '**', '*.md')
-    files = glob.glob(pattern, recursive=True)
+    base_dirs = ['TMP/資訊處理考古題', 'TMP/高考三等', 'TMP/地方特考三等']
+    all_files = []
+    for b in base_dirs:
+        pattern = os.path.join(b, '**', '*.md')
+        all_files.extend(glob.glob(pattern, recursive=True))
     
-    print(f"Found {len(files)} markdown files to enhance.")
+    print(f"Found {len(all_files)} markdown files across all tracks.")
     
     modified_count = 0
-    for file_path in files:
+    for file_path in all_files:
         with open(file_path, 'r', encoding='utf-8') as f:
             original = f.read()
             
